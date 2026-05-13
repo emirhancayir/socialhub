@@ -15,6 +15,9 @@ class PublishPost implements ShouldQueue
 {
     use Queueable;
 
+    public int $timeout = 600;
+    public int $tries = 1;
+
     public function __construct(public Post $post) {}
 
     public function handle(): void
@@ -38,9 +41,12 @@ class PublishPost implements ShouldQueue
                 continue;
             }
 
-            $result = env('DEMO_MODE', false)
-                ? $this->demoPost($platform)
-                : $this->realPost($platform, $account, $media);
+            // TikTok, Instagram ve Twitter her zaman gerçek Python scripti kullanır
+            $result = in_array($platform, ['tiktok', 'instagram', 'twitter'])
+                ? $this->realPost($platform, $account, $media)
+                : (env('DEMO_MODE', false)
+                    ? $this->demoPost($platform)
+                    : $this->realPost($platform, $account, $media));
 
             PostResult::create([
                 'post_id'          => $this->post->id,
@@ -62,10 +68,20 @@ class PublishPost implements ShouldQueue
 
     private function realPost(string $platform, SocialAccount $account, $media): array
     {
+        $title   = trim((string) $this->post->title);
+        $content = trim((string) $this->post->content);
+
+        // TikTok için title + content birleşimi (newline yok, shell ile uyumlu)
+        $tiktokCaption = trim($title . ($title && $content ? ' — ' : '') . $content) ?: 'SocialHub';
+
+        $twitterCaption = trim($title . ($title && $content ? ' — ' : '') . $content) ?: 'SocialHub';
+
+        $postId = $this->post->id;
+
         return match($platform) {
-            'instagram' => (new InstagramService)->post($account, $this->post->content ?? '', $media),
-            'twitter'   => (new TwitterService)->post($account, $this->post->content ?? '', $media),
-            'tiktok'    => (new TikTokService)->post($account, $this->post->title ?? $this->post->content ?? '', $media),
+            'instagram' => (new InstagramService)->post($account, $twitterCaption, $media, $postId),
+            'twitter'   => (new TwitterService)->post($account, $twitterCaption, $media, $postId),
+            'tiktok'    => (new TikTokService)->post($account, $tiktokCaption, $media, $postId),
             default     => ['success' => false, 'error' => 'Desteklenmeyen platform'],
         };
     }

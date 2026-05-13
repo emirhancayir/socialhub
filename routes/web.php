@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::get('/posts/{post}/progress', [PostController::class, 'progress'])->name('posts.progress');
 
     // Social Accounts
     Route::get('/auth/{platform}/redirect', [SocialAccountController::class, 'redirect'])->name('social.redirect');

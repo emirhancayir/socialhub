@@ -4,66 +4,57 @@ namespace App\Services;
 
 use App\Models\PostMedia;
 use App\Models\SocialAccount;
-use Illuminate\Support\Facades\Http;
 
 class TikTokService
 {
-    private string $baseUrl = 'https://open.tiktokapis.com/v2';
-
-    public function post(SocialAccount $account, string $title, ?PostMedia $media): array
+    public function post(SocialAccount $account, string $title, ?PostMedia $media, int $postId = 0): array
     {
-        $token = $account->access_token;
-
-        try {
-            if (!$media) {
-                return ['success' => false, 'error' => 'TikTok requires a video file'];
-            }
-
-            if ($media->file_type !== 'video') {
-                return ['success' => false, 'error' => 'TikTok only supports video uploads'];
-            }
-
-            return $this->postVideo($token, $title, $media);
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
-    }
-
-    private function postVideo(string $token, string $title, PostMedia $media): array
-    {
-        $filePath = storage_path('app/public/' . $media->file_path);
-        $fileSize = filesize($filePath);
-
-        $initResponse = Http::withToken($token)
-            ->post("{$this->baseUrl}/post/publish/video/init/", [
-                'post_info' => [
-                    'title'        => $title,
-                    'privacy_level' => 'SELF_ONLY',
-                ],
-                'source_info' => [
-                    'source'         => 'FILE_UPLOAD',
-                    'video_size'     => $fileSize,
-                    'chunk_size'     => $fileSize,
-                    'total_chunk_count' => 1,
-                ],
-            ]);
-
-        if (!$initResponse->successful()) {
-            return ['success' => false, 'error' => $initResponse->json('error.message', 'Init failed')];
+        if (!$media || $media->file_type !== 'video') {
+            return ['success' => false, 'error' => 'TikTok yalnızca video destekler'];
         }
 
-        $uploadUrl = $initResponse->json('data.upload_url');
-        $publishId = $initResponse->json('data.publish_id');
+        $videoPath = storage_path('app/public/' . $media->file_path);
 
-        $uploadResponse = Http::withHeaders([
-            'Content-Range' => "bytes 0-" . ($fileSize - 1) . "/{$fileSize}",
-            'Content-Type'  => $media->mime_type,
-        ])->put($uploadUrl, file_get_contents($filePath));
-
-        if ($uploadResponse->successful()) {
-            return ['success' => true, 'post_id' => $publishId];
+        if (!file_exists($videoPath)) {
+            return ['success' => false, 'error' => 'Video dosyası bulunamadı'];
         }
 
-        return ['success' => false, 'error' => 'Video upload failed'];
+        \Log::info('TikTokService called', [
+            'video' => $videoPath,
+            'title' => $title,
+            'post_id' => $media->post_id,
+        ]);
+
+        // Caption'ı dosya adı olarak kullan ki tiktok_uploader açıklamayı ayarlayamasa bile
+        // TikTok dosya adını caption olarak gösterir.
+        $ext       = pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'mp4';
+        $safeTitle = preg_replace('/\s+/', ' ', $title);
+        $safeTitle = preg_replace('/[^\p{L}\p{N}\s\-_]/u', '', $safeTitle);
+        $safeTitle = trim(mb_substr($safeTitle, 0, 80)) ?: 'video';
+        $tempDir   = sys_get_temp_dir();
+        $tempPath  = $tempDir . DIRECTORY_SEPARATOR . $safeTitle . '.' . $ext;
+        copy($videoPath, $tempPath);
+
+        $scriptPath = base_path('scripts/tiktok_post.py');
+
+        $command = 'py ' . escapeshellarg($scriptPath)
+            . ' ' . escapeshellarg($tempPath)
+            . ' ' . escapeshellarg($title)
+            . ' ' . escapeshellarg((string) $postId)
+            . ' 2>&1';
+
+        $output = shell_exec($command);
+
+        @unlink($tempPath);
+
+        $lines    = array_filter(explode("\n", trim($output ?? '')));
+        $lastLine = end($lines);
+        $result   = json_decode($lastLine, true);
+
+        if ($result && $result['success']) {
+            return ['success' => true, 'post_id' => 'tiktok_' . uniqid()];
+        }
+
+        return ['success' => false, 'error' => $result['error'] ?? 'TikTok post başarısız'];
     }
 }

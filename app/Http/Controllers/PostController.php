@@ -24,18 +24,19 @@ class PostController extends Controller
             'platforms'    => 'required|array|min:1',
             'platforms.*'  => 'in:instagram,twitter,tiktok,facebook',
             'media'        => 'nullable|array',
-            'media.*'      => 'file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:102400',
+            'media.*'      => 'file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:256000',
             'scheduled_at' => 'nullable|date|after:now',
         ]);
 
         $scheduledAt = $request->scheduled_at ? now()->parse($request->scheduled_at) : null;
+        $isScheduled = $scheduledAt && $scheduledAt->isFuture();
 
         $post = Post::create([
             'user_id'      => auth()->id(),
             'content'      => $request->content,
             'title'        => $request->title,
             'platforms'    => $request->platforms,
-            'status'       => 'draft',
+            'status'       => $isScheduled ? 'draft' : 'publishing',
             'scheduled_at' => $scheduledAt,
         ]);
 
@@ -69,5 +70,23 @@ class PostController extends Controller
         abort_if($post->user_id !== auth()->id(), 403);
         $post->delete();
         return back()->with('success', 'Post silindi.');
+    }
+
+    public function progress(Post $post)
+    {
+        abort_if($post->user_id !== auth()->id(), 403);
+
+        $path = storage_path('app/progress/post_' . $post->id . '.json');
+        if (!file_exists($path)) {
+            return response()->json(['stage' => 'queued', 'percent' => 0, 'message' => 'Kuyrukta...', 'status' => $post->status]);
+        }
+
+        $data = json_decode(file_get_contents($path), true) ?? [];
+        return response()->json([
+            'stage'   => $data['stage']   ?? 'unknown',
+            'percent' => $data['percent'] ?? 0,
+            'message' => $data['message'] ?? '',
+            'status'  => $post->status,
+        ]);
     }
 }
