@@ -24,3 +24,9 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Script cookies & sessions
+scripts/*.txt
+scripts/*.json
+scripts/*.png
+scripts/*.log
