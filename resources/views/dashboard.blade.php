@@ -56,37 +56,39 @@
     @php $account = $accounts->where('platform', $key)->first(); @endphp
     <div class="col-md-4">
         <div class="card account-card shadow-sm">
-            <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-3">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center gap-2">
                     <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                          style="width:44px;height:44px;background:{{ $info['bg'] }};">
                         <i class="bi bi-{{ $info['icon'] }}" style="font-size:1.2rem;color:{{ $info['color'] }};"></i>
                     </div>
-                    <div>
+                    <div class="flex-grow-1 min-w-0">
                         <div class="fw-semibold small">{{ $info['label'] }}</div>
                         @if($account)
-                            <small class="text-success fw-semibold">
+                            <small class="text-success fw-semibold d-block text-truncate">
                                 <span class="connected-indicator"></span>{{ '@'.$account->platform_username }}
                             </small>
                         @else
                             <small class="text-muted">Bağlı değil</small>
                         @endif
                     </div>
+                    <div class="flex-shrink-0">
+                        @if($account)
+                            <form method="POST" action="{{ route('social.destroy', $account) }}"
+                                  onsubmit="return confirm('Hesap bağlantısı kaldırılsın mı?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('social.redirect', $key) }}"
+                               class="btn btn-sm btn-outline-secondary rounded-pill px-2">
+                                <i class="bi bi-link-45deg"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
-                @if($account)
-                    <form method="POST" action="{{ route('social.destroy', $account) }}"
-                          onsubmit="return confirm('Hesap bağlantısı kaldırılsın mı?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </form>
-                @else
-                    <a href="{{ route('social.redirect', $key) }}"
-                       class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                        <i class="bi bi-link-45deg"></i> Bağla
-                    </a>
-                @endif
             </div>
         </div>
     </div>

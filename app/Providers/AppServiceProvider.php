@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use SocialiteProviders\Manager\SocialiteWasCalled;
@@ -12,6 +13,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         Event::listen(SocialiteWasCalled::class, function (SocialiteWasCalled $event) {
             $event->extendSocialite('instagram', \SocialiteProviders\Instagram\Provider::class);
             $event->extendSocialite('tiktok', \SocialiteProviders\TikTok\Provider::class);
