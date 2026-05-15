@@ -270,7 +270,8 @@
     </div>
 
     @forelse($posts as $post)
-    <div class="post-row">
+    <div class="post-row {{ $post->status === 'draft' && $post->scheduled_at ? 'scheduled-post-watch' : '' }}"
+         data-post-id="{{ $post->id }}">
         <div class="d-flex align-items-start gap-3">
 
             {{-- Medya thumb --}}
@@ -401,6 +402,24 @@
 
 @push('scripts')
 <script>
+// Zamanlanmış post'ları izle — durum değişince sayfayı yenile
+document.querySelectorAll('.scheduled-post-watch').forEach(el => {
+    const postId = el.dataset.postId;
+    const poll = () => {
+        fetch(`/posts/${postId}/progress`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status && data.status !== 'draft') {
+                    location.reload();
+                    return;
+                }
+                setTimeout(poll, 5000);
+            })
+            .catch(() => setTimeout(poll, 8000));
+    };
+    setTimeout(poll, 5000);
+});
+
 // Özel onay modalı — tüm .sh-confirm-btn butonları
 document.addEventListener('click', e => {
     const btn = e.target.closest('.sh-confirm-btn');
