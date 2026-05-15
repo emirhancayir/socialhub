@@ -143,25 +143,53 @@ def main():
             time.sleep(8)
             snap('03_after_upload')
 
-            # Next, Next (filtre, edit)
-            for i in range(3):
+            # "Video posts are now shared as reels" popup'ini kapat
+            for ok_sel in [
+                'button:has-text("OK")',
+                'button:has-text("Tamam")',
+                'button:has-text("Got it")',
+                'button:has-text("Anladım")',
+            ]:
                 try:
-                    btn = page.get_by_role('button', name='Next')
-                    btn.click(timeout=10000)
+                    page.locator(ok_sel).first.click(timeout=4000)
+                    log(f"Dismissed popup via: {ok_sel}")
+                    time.sleep(2)
+                    break
+                except Exception:
+                    pass
+
+            snap('03b_after_popup')
+
+            # Next, Next (filtre, edit) — Türkçe/İngilizce fallback
+            next_labels = ['Next', 'İleri', 'Devam', 'Continue']
+            for i in range(3):
+                clicked = False
+                for label in next_labels:
+                    try:
+                        btn = page.get_by_role('button', name=label)
+                        btn.click(timeout=5000)
+                        log(f"Clicked Next #{i+1} via label='{label}'")
+                        clicked = True
+                        break
+                    except Exception:
+                        pass
+                if clicked:
                     time.sleep(3)
-                    log(f"Clicked Next #{i+1}")
                     snap(f'04_after_next_{i+1}')
-                except Exception as ex:
-                    log(f"No Next button #{i+1}: {ex}")
+                else:
+                    log(f"No Next button #{i+1}, stopping")
                     break
 
             # Caption (multiple selector fallback)
             write_progress('caption', 80, 'Aciklama yaziliyor...')
             caption_selectors = [
                 'div[aria-label="Write a caption..."][contenteditable="true"]',
+                'div[aria-label="Açıklama yaz..."][contenteditable="true"]',
+                'div[aria-label="Bir açıklama yazın"][contenteditable="true"]',
                 'div[role="textbox"][contenteditable="true"]',
                 'textarea[aria-label="Write a caption..."]',
                 'div[contenteditable="true"][data-lexical-editor="true"]',
+                'div[contenteditable="true"]',
             ]
             caption_set = False
             for sel in caption_selectors:
@@ -185,12 +213,15 @@ def main():
             time.sleep(2)
             snap('05_after_caption')
 
-            # Share button (multiple selectors)
+            # Share button (multiple selectors, Türkçe/İngilizce)
             write_progress('posting', 90, 'Yayinlaniyor...')
             share_selectors = [
                 ('role', 'Share'),
+                ('role', 'Paylaş'),
                 ('role', 'Share to'),
+                ('role', 'Paylaş'),
                 ('text', 'Share'),
+                ('text', 'Paylaş'),
                 ('text', 'Paylas'),
             ]
             shared = False
