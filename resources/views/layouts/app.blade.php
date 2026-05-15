@@ -540,8 +540,9 @@ window.SH = (() => {
     }
 
     document.getElementById('sh-modal-confirm-btn').addEventListener('click', () => {
+        const cb = _onConfirm;
         _closeModal();
-        if (_onConfirm) _onConfirm();
+        if (cb) cb();
     });
 
     document.addEventListener('keydown', e => {
