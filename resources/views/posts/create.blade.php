@@ -350,7 +350,7 @@ function toggleSchedule() {
 document.getElementById('postForm').addEventListener('submit', function(e) {
     if (!document.querySelectorAll('.platform-checkbox:checked').length) {
         e.preventDefault();
-        alert('Lütfen en az bir platform seç!');
+        SH.toast('Devam etmek için en az bir platform seçmelisin.', 'warning');
         return;
     }
     const btn = document.getElementById('submitBtn');

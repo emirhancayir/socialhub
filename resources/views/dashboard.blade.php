@@ -235,11 +235,14 @@
                     </div>
                     <div class="flex-shrink-0">
                         @if($account)
-                            <form method="POST" action="{{ route('social.destroy', $account) }}"
-                                  onsubmit="return confirm('Hesap bağlantısı kaldırılsın mı?')">
+                            <form method="POST" action="{{ route('social.destroy', $account) }}" class="sh-confirm-form">
                                 @csrf @method('DELETE')
-                                <button type="submit"
-                                        class="btn btn-sm"
+                                <button type="button"
+                                        class="btn btn-sm sh-confirm-btn"
+                                        data-msg="{{ $info['label'] }} hesabının bağlantısı kaldırılsın mı?"
+                                        data-title="Hesabı Kaldır"
+                                        data-confirm-text="Evet, Kaldır"
+                                        data-icon="link-45deg"
                                         style="background:#fee2e2;color:#dc2626;border:none;border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
@@ -357,11 +360,14 @@
             </div>
 
             {{-- Sil butonu --}}
-            <form method="POST" action="{{ route('posts.destroy', $post) }}"
-                  onsubmit="return confirm('Bu post silinsin mi?')" class="flex-shrink-0">
+            <form method="POST" action="{{ route('posts.destroy', $post) }}" class="sh-confirm-form flex-shrink-0">
                 @csrf @method('DELETE')
-                <button type="submit"
-                        class="btn btn-sm"
+                <button type="button"
+                        class="btn btn-sm sh-confirm-btn"
+                        data-msg="Bu post kalıcı olarak silinecek. Emin misin?"
+                        data-title="Postu Sil"
+                        data-confirm-text="Evet, Sil"
+                        data-icon="trash"
                         style="background:#f3f4f6;color:#9ca3af;border:none;border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;"
                         onmouseover="this.style.background='#fee2e2';this.style.color='#dc2626';"
                         onmouseout="this.style.background='#f3f4f6';this.style.color='#9ca3af';">
@@ -395,6 +401,23 @@
 
 @push('scripts')
 <script>
+// Özel onay modalı — tüm .sh-confirm-btn butonları
+document.addEventListener('click', e => {
+    const btn = e.target.closest('.sh-confirm-btn');
+    if (!btn) return;
+    const form = btn.closest('.sh-confirm-form');
+    SH.confirm(
+        btn.dataset.msg || 'Bu işlemi yapmak istediğinden emin misin?',
+        {
+            title:       btn.dataset.title       || 'Emin misin?',
+            confirmText: btn.dataset.confirmText || 'Evet',
+            icon:        btn.dataset.icon        || 'trash',
+            type:        'danger',
+        },
+        () => form.submit()
+    );
+});
+
 document.querySelectorAll('.post-progress').forEach(el => {
     const postId = el.dataset.postId;
     const fill = el.querySelector('.progress-fill');

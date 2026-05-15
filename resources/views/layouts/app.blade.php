@@ -200,16 +200,137 @@
 
         .page-body { padding: 28px 32px; flex: 1; }
 
-        /* ── Alerts ── */
-        .alert {
-            border: none;
-            border-radius: 14px;
-            font-size: 0.875rem;
-            padding: 13px 18px;
-            margin-bottom: 20px;
+        /* ── Toast ── */
+        #sh-toast-container {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
         }
-        .alert-success { background: #ecfdf5; color: #065f46; }
-        .alert-danger  { background: #fef2f2; color: #991b1b; }
+        .sh-toast {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #eff0f6;
+            pointer-events: all;
+            animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+        .sh-toast.hiding { animation: toastOut 0.25s ease forwards; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(60px) scale(0.95); }
+            to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0) scale(1); }
+            to   { opacity: 0; transform: translateX(60px) scale(0.95); }
+        }
+        .sh-toast-icon {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .sh-toast-body { flex: 1; min-width: 0; }
+        .sh-toast-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 2px; }
+        .sh-toast-msg { color: #6b7280; font-size: 0.82rem; line-height: 1.4; }
+        .sh-toast-close {
+            background: none; border: none; cursor: pointer;
+            color: #9ca3af; font-size: 1rem; padding: 0;
+            flex-shrink: 0; line-height: 1;
+        }
+        .sh-toast-close:hover { color: #374151; }
+        .sh-toast-progress {
+            position: absolute; bottom: 0; left: 0;
+            height: 3px; border-radius: 0 0 14px 14px;
+            transition: width linear;
+        }
+        .sh-toast { position: relative; overflow: hidden; }
+
+        .sh-toast.success .sh-toast-icon { background: #dcfce7; color: #16a34a; }
+        .sh-toast.success .sh-toast-title { color: #15803d; }
+        .sh-toast.success .sh-toast-progress { background: #22c55e; }
+
+        .sh-toast.error .sh-toast-icon { background: #fee2e2; color: #dc2626; }
+        .sh-toast.error .sh-toast-title { color: #dc2626; }
+        .sh-toast.error .sh-toast-progress { background: #ef4444; }
+
+        .sh-toast.warning .sh-toast-icon { background: #fef3c7; color: #d97706; }
+        .sh-toast.warning .sh-toast-title { color: #b45309; }
+        .sh-toast.warning .sh-toast-progress { background: #f59e0b; }
+
+        .sh-toast.info .sh-toast-icon { background: #dbeafe; color: #2563eb; }
+        .sh-toast.info .sh-toast-title { color: #1d4ed8; }
+        .sh-toast.info .sh-toast-progress { background: #3b82f6; }
+
+        /* ── Confirm Modal ── */
+        .sh-modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15,12,41,0.55);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.18s ease;
+        }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .sh-modal {
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px;
+            width: 100%; max-width: 400px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+            animation: modalIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform: scale(0.9); }
+            to   { opacity:1; transform: scale(1); }
+        }
+        .sh-modal-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+        }
+        .sh-modal-icon.danger { background: #fee2e2; color: #dc2626; }
+        .sh-modal-icon.warning { background: #fef3c7; color: #d97706; }
+        .sh-modal-title {
+            font-size: 1rem; font-weight: 800; color: #1e1e2e;
+            margin-bottom: 6px;
+        }
+        .sh-modal-msg { font-size: 0.875rem; color: #6b7280; line-height: 1.5; margin-bottom: 24px; }
+        .sh-modal-actions { display: flex; gap: 10px; }
+        .sh-modal-cancel {
+            flex: 1; padding: 11px;
+            background: #f3f4f6; color: #374151;
+            border: none; border-radius: 12px;
+            font-weight: 600; font-size: 0.875rem;
+            cursor: pointer; font-family: inherit;
+            transition: background 0.15s;
+        }
+        .sh-modal-cancel:hover { background: #e5e7eb; }
+        .sh-modal-confirm {
+            flex: 1; padding: 11px;
+            border: none; border-radius: 12px;
+            font-weight: 700; font-size: 0.875rem;
+            cursor: pointer; font-family: inherit;
+            color: #fff;
+            transition: opacity 0.15s;
+        }
+        .sh-modal-confirm.danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+        .sh-modal-confirm.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .sh-modal-confirm:hover { opacity: 0.9; }
 
         /* ── Cards ── */
         .sh-card {
@@ -325,24 +446,119 @@
     </div>
 
     <div class="page-body">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show shadow-sm">
-                <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm">
-                <i class="bi bi-exclamation-circle-fill me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
         @yield('content')
     </div>
 </div>
 
+{{-- Toast Container --}}
+<div id="sh-toast-container"></div>
+
+{{-- Confirm Modal --}}
+<div id="sh-modal-overlay" class="sh-modal-overlay" style="display:none;" onclick="if(event.target===this) SH._closeModal()">
+    <div class="sh-modal">
+        <div class="sh-modal-icon danger" id="sh-modal-icon"><i class="bi bi-trash" id="sh-modal-icon-i"></i></div>
+        <div class="sh-modal-title" id="sh-modal-title">Emin misin?</div>
+        <div class="sh-modal-msg" id="sh-modal-msg"></div>
+        <div class="sh-modal-actions">
+            <button class="sh-modal-cancel" onclick="SH._closeModal()">Vazgeç</button>
+            <button class="sh-modal-confirm danger" id="sh-modal-confirm-btn">Evet, Sil</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+window.SH = (() => {
+    const icons = {
+        success: 'check-circle-fill',
+        error:   'x-circle-fill',
+        warning: 'exclamation-triangle-fill',
+        info:    'info-circle-fill',
+    };
+    const titles = {
+        success: 'Başarılı',
+        error:   'Hata',
+        warning: 'Uyarı',
+        info:    'Bilgi',
+    };
+
+    function toast(msg, type = 'success', duration = 4500) {
+        const container = document.getElementById('sh-toast-container');
+        const el = document.createElement('div');
+        el.className = `sh-toast ${type}`;
+        el.innerHTML = `
+            <div class="sh-toast-icon"><i class="bi bi-${icons[type] || icons.info}"></i></div>
+            <div class="sh-toast-body">
+                <div class="sh-toast-title">${titles[type] || 'Bilgi'}</div>
+                <div class="sh-toast-msg">${msg}</div>
+            </div>
+            <button class="sh-toast-close" onclick="SH._removeToast(this.closest('.sh-toast'))">
+                <i class="bi bi-x"></i>
+            </button>
+            <div class="sh-toast-progress" style="width:100%;"></div>
+        `;
+        container.appendChild(el);
+
+        const bar = el.querySelector('.sh-toast-progress');
+        requestAnimationFrame(() => {
+            bar.style.transition = `width ${duration}ms linear`;
+            bar.style.width = '0%';
+        });
+
+        const timer = setTimeout(() => _removeToast(el), duration);
+        el._timer = timer;
+        return el;
+    }
+
+    function _removeToast(el) {
+        if (!el || el._removing) return;
+        el._removing = true;
+        clearTimeout(el._timer);
+        el.classList.add('hiding');
+        el.addEventListener('animationend', () => el.remove(), { once: true });
+    }
+
+    let _onConfirm = null;
+
+    function confirm(msg, { title = 'Emin misin?', confirmText = 'Evet, Sil', type = 'danger', icon = 'trash' } = {}, onConfirm) {
+        document.getElementById('sh-modal-msg').textContent = msg;
+        document.getElementById('sh-modal-title').textContent = title;
+        document.getElementById('sh-modal-icon').className = `sh-modal-icon ${type}`;
+        document.getElementById('sh-modal-icon-i').className = `bi bi-${icon}`;
+        const confirmBtn = document.getElementById('sh-modal-confirm-btn');
+        confirmBtn.textContent = confirmText;
+        confirmBtn.className = `sh-modal-confirm ${type}`;
+        _onConfirm = onConfirm;
+        document.getElementById('sh-modal-overlay').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function _closeModal() {
+        document.getElementById('sh-modal-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+        _onConfirm = null;
+    }
+
+    document.getElementById('sh-modal-confirm-btn').addEventListener('click', () => {
+        _closeModal();
+        if (_onConfirm) _onConfirm();
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') _closeModal();
+    });
+
+    return { toast, confirm, _removeToast, _closeModal };
+})();
+
+// Session flash → toast
+@if(session('success'))
+    document.addEventListener('DOMContentLoaded', () => SH.toast(@json(session('success')), 'success'));
+@endif
+@if(session('error'))
+    document.addEventListener('DOMContentLoaded', () => SH.toast(@json(session('error')), 'error'));
+@endif
+</script>
 @stack('scripts')
 </body>
 </html>
