@@ -113,6 +113,84 @@
     }
     .btn-publish:hover { opacity: 0.92; transform: translateY(-1px); }
     .btn-publish:disabled { opacity: 0.65; transform: none; cursor: not-allowed; }
+
+    .btn-draft {
+        background: #f3f4f6;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 14px;
+        color: #6b7280; font-weight: 700; font-size: 0.95rem;
+        padding: 12px; width: 100%;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .btn-draft:hover { background: #e9eaec; color: #374151; border-color: #d1d5db; }
+
+    .btn-preview {
+        background: transparent;
+        border: 1.5px solid #c7d2fe;
+        border-radius: 14px;
+        color: #6c63ff; font-weight: 600; font-size: 0.875rem;
+        padding: 10px; width: 100%;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin-bottom: 12px;
+    }
+    .btn-preview:hover { background: #ede9ff; border-color: #6c63ff; }
+
+    /* Preview Modal */
+    .preview-overlay {
+        position: fixed; inset: 0;
+        background: rgba(15,12,41,0.65);
+        z-index: 10000;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.18s ease;
+    }
+    .preview-modal {
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px;
+        width: 100%; max-width: 740px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+        animation: modalIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .preview-card {
+        border: 1px solid #eff0f6;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .preview-card-header {
+        padding: 12px 14px;
+        display: flex; align-items: center; gap: 10px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .preview-avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6c63ff, #a78bfa);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-weight: 700; font-size: 0.9rem;
+    }
+    .preview-img-placeholder {
+        width: 100%; aspect-ratio: 1;
+        background: linear-gradient(135deg, #f0f2f8, #e8eaf0);
+        display: flex; align-items: center; justify-content: center;
+        color: #d1d5db; font-size: 3rem;
+    }
+    .preview-caption {
+        padding: 12px 14px;
+        font-size: 0.85rem; line-height: 1.5; color: #374151;
+        white-space: pre-wrap; word-break: break-word;
+    }
+    .twitter-preview-card {
+        border: 1px solid #eff0f6;
+        border-radius: 16px;
+        padding: 16px;
+    }
 </style>
 @endpush
 
@@ -255,6 +333,16 @@
             </div>
         </div>
 
+        {{-- Önizle Butonu --}}
+        <button type="button" class="btn-preview" onclick="openPreview()">
+            <i class="bi bi-eye"></i> Önizle
+        </button>
+
+        {{-- Taslak Kaydet --}}
+        <button type="submit" name="save_draft" value="1" class="btn-draft mb-3">
+            <i class="bi bi-bookmark me-2"></i> Taslak Kaydet
+        </button>
+
         {{-- Yayınla --}}
         <button type="submit" class="btn-publish" id="submitBtn">
             <i class="bi bi-send-fill me-2"></i><span id="submitText">Şimdi Yayınla</span>
@@ -262,6 +350,67 @@
     </div>
 </div>
 </form>
+
+{{-- Preview Modal --}}
+<div id="previewOverlay" class="preview-overlay" style="display:none;" onclick="if(event.target===this) closePreview()">
+    <div class="preview-modal">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <div class="fw-bold" style="font-size:1rem;color:#1e1e2e;">Post Önizlemesi</div>
+                <div style="font-size:0.78rem;color:#9ca3af;">Paylaşmadan önce nasıl görüneceğini incele</div>
+            </div>
+            <button onclick="closePreview()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.3rem;padding:0;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="row g-3">
+            {{-- Instagram Preview --}}
+            <div class="col-md-6">
+                <div class="fw-semibold mb-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.7px;color:#9ca3af;">
+                    <i class="bi bi-instagram" style="color:#e1306c;"></i> Instagram
+                </div>
+                <div class="preview-card">
+                    <div class="preview-card-header">
+                        <div class="preview-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+                        <div>
+                            <div class="fw-semibold" style="font-size:0.85rem;">{{ auth()->user()->name }}</div>
+                            <div style="font-size:0.72rem;color:#9ca3af;">az önce</div>
+                        </div>
+                    </div>
+                    <div class="preview-img-placeholder">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    <div class="preview-caption">
+                        <strong style="font-size:0.85rem;">{{ auth()->user()->name }}</strong>
+                        <span id="igCaption"> —</span>
+                    </div>
+                </div>
+            </div>
+            {{-- Twitter Preview --}}
+            <div class="col-md-6">
+                <div class="fw-semibold mb-2" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.7px;color:#9ca3af;">
+                    <i class="bi bi-twitter-x"></i> X (Twitter)
+                </div>
+                <div class="twitter-preview-card">
+                    <div class="d-flex gap-3">
+                        <div class="preview-avatar flex-shrink-0">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+                        <div>
+                            <div class="fw-bold" style="font-size:0.875rem;">{{ auth()->user()->name }}</div>
+                            <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:8px;">@{{ strtolower(str_replace(' ', '', auth()->user()->name)) }}</div>
+                            <div id="twCaption" style="font-size:0.875rem;color:#374151;line-height:1.5;white-space:pre-wrap;word-break:break-word;">—</div>
+                            <div style="font-size:0.75rem;color:#9ca3af;margin-top:10px;">az önce · Twitter Web App</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end mt-4">
+            <button onclick="closePreview()" class="btn-draft" style="width:auto;padding:10px 24px;">
+                Kapat
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -348,14 +497,42 @@ function toggleSchedule() {
 }
 
 document.getElementById('postForm').addEventListener('submit', function(e) {
-    if (!document.querySelectorAll('.platform-checkbox:checked').length) {
+    const isSaveDraft = e.submitter && e.submitter.name === 'save_draft';
+    if (!isSaveDraft && !document.querySelectorAll('.platform-checkbox:checked').length) {
         e.preventDefault();
         SH.toast('Devam etmek için en az bir platform seçmelisin.', 'warning');
         return;
     }
-    const btn = document.getElementById('submitBtn');
-    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Yayınlanıyor...';
-    btn.disabled = true;
+    if (!isSaveDraft) {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Yayınlanıyor...';
+        btn.disabled = true;
+    }
+});
+
+// Preview modal
+function openPreview() {
+    const caption = document.getElementById('contentInput').value.trim() || '—';
+    document.getElementById('igCaption').textContent = ' ' + caption;
+    document.getElementById('twCaption').textContent = caption;
+    document.getElementById('previewOverlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closePreview() {
+    document.getElementById('previewOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePreview();
+});
+
+// Live preview update from textarea
+document.getElementById('contentInput').addEventListener('input', function() {
+    const v = this.value.trim() || '—';
+    const igEl = document.getElementById('igCaption');
+    const twEl = document.getElementById('twCaption');
+    if (igEl) igEl.textContent = ' ' + v;
+    if (twEl) twEl.textContent = v;
 });
 </script>
 @endpush

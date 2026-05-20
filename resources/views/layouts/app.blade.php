@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<script>
+(function() {
+    const t = localStorage.getItem('sh-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SocialHub')</title>
@@ -8,12 +14,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #f0f2f8; --surface: #fff; --border: #eff0f6;
+            --text: #1e1e2e; --muted: #9ca3af; --card-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        [data-theme="dark"] {
+            --bg: #0d0d14; --surface: #1a1a2e; --border: #2a2a40;
+            --text: #e2e8f0; --muted: #64748b; --card-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background: #f0f2f8;
+            background: var(--bg);
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-            color: #1e1e2e;
+            color: var(--text);
         }
+        .sh-card { background: var(--surface); border-color: var(--border); box-shadow: var(--card-shadow); }
+        .topbar { background: var(--surface); border-color: var(--border); }
+        .page-body { background: var(--bg); }
 
         /* ── Sidebar ── */
         .sidebar {
@@ -411,6 +428,20 @@
         <a href="{{ route('social.redirect', 'tiktok') }}" class="nav-link-item">
             <i class="bi bi-tiktok"></i> TikTok
         </a>
+
+        <div class="nav-group-label">Analiz</div>
+        <a href="{{ route('analytics') }}" class="nav-link-item {{ request()->routeIs('analytics') ? 'active' : '' }}">
+            <i class="bi bi-bar-chart-fill"></i> Analitik
+        </a>
+        <a href="{{ route('calendar') }}" class="nav-link-item {{ request()->routeIs('calendar') ? 'active' : '' }}">
+            <i class="bi bi-calendar3"></i> Takvim
+        </a>
+        <a href="{{ route('media.index') }}" class="nav-link-item {{ request()->routeIs('media.*') ? 'active' : '' }}">
+            <i class="bi bi-images"></i> Medya
+        </a>
+        <a href="{{ route('profile') }}" class="nav-link-item {{ request()->routeIs('profile') ? 'active' : '' }}">
+            <i class="bi bi-person-circle"></i> Profil
+        </a>
     </div>
 
     <div class="sidebar-footer">
@@ -438,6 +469,11 @@
         </div>
         <div class="topbar-right">
             <span class="topbar-date"><i class="bi bi-calendar3 me-1"></i>{{ now()->format('d M Y') }}</span>
+            <button id="themeToggle" onclick="SH.toggleTheme()"
+                    style="background:transparent;border:1.5px solid var(--border);color:var(--text);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:all 0.15s;"
+                    title="Tema Değiştir">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+            </button>
             <a href="{{ route('posts.create') }}" class="btn btn-sm fw-semibold px-4"
                style="background:linear-gradient(135deg,#6c63ff,#5a52d5);color:#fff;border:none;border-radius:10px;padding:8px 18px;font-size:0.82rem;">
                 <i class="bi bi-plus-lg me-1"></i> Yeni Post
@@ -549,7 +585,23 @@ window.SH = (() => {
         if (e.key === 'Escape') _closeModal();
     });
 
-    return { toast, confirm, _removeToast, _closeModal };
+    function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute('data-theme') === 'dark';
+        html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.className = isDark ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+        localStorage.setItem('sh-theme', isDark ? 'light' : 'dark');
+    }
+
+    // Sync icon on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    });
+
+    return { toast, confirm, _removeToast, _closeModal, toggleTheme };
 })();
 
 // Session flash → toast

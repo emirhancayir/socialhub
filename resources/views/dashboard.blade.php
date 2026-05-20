@@ -360,6 +360,21 @@
                 </div>
             </div>
 
+            {{-- Retry butonu (sadece failed postlar için) --}}
+            @if($post->status === 'failed')
+            <form method="POST" action="{{ route('posts.retry', $post) }}" class="flex-shrink-0">
+                @csrf
+                <button type="submit"
+                        class="btn btn-sm"
+                        style="background:#ede9ff;color:#6c63ff;border:none;border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;transition:all 0.15s;"
+                        onmouseover="this.style.background='#6c63ff';this.style.color='#fff';"
+                        onmouseout="this.style.background='#ede9ff';this.style.color='#6c63ff';"
+                        title="Yeniden Dene">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </form>
+            @endif
+
             {{-- Sil butonu --}}
             <form method="POST" action="{{ route('posts.destroy', $post) }}" class="sh-confirm-form flex-shrink-0">
                 @csrf @method('DELETE')

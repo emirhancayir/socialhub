@@ -3,6 +3,10 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SocialAccountController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\CalendarController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('dashboard'));
@@ -26,10 +30,25 @@ Route::middleware('auth')->group(function () {
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::get('/posts/{post}/progress', [PostController::class, 'progress'])->name('posts.progress');
+    Route::post('/posts/{post}/retry', [PostController::class, 'retry'])->name('posts.retry');
 
     // Social Accounts
     Route::get('/auth/{platform}/redirect', [SocialAccountController::class, 'redirect'])->name('social.redirect');
     Route::get('/auth/{platform}/callback', [SocialAccountController::class, 'callback'])->name('social.callback');
     Route::post('/auth/demo-connect', [SocialAccountController::class, 'demoStore'])->name('social.demo-store');
     Route::delete('/social-accounts/{account}', [SocialAccountController::class, 'destroy'])->name('social.destroy');
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Analytics
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+
+    // Media Library
+    Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+
+    // Calendar
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+    Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
 });
